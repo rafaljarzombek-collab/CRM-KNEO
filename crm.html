@@ -276,7 +276,7 @@ async function fetchData(){
       if(d<MONTH_START||d>TODAY) return;
       const notatka=(row[21]||row[22]||"").trim();
       parsed.push({
-        _idx:i+2, data:dateISO||"", godzina:(row[1]||"").trim(),
+        _idx:i+2, data:dateISO||"", godzina:parseSheetTime(row[1]),
         klient, adres:(row[4]||"").trim(), opis:(row[5]||"").trim(),
         status:normalizeStatus((row[6]||"").trim()),
         koord:(row[7]||"").trim(), osoby:(row[8]||"").trim(),
