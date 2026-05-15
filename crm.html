@@ -133,7 +133,7 @@
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFe0bY4ypWgUrbKeYvOlxEe6vko0Uyuv6OJ9wn03B1QXAvkEnkDJtEtihpifS_41IT8w/exec";
 
-const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const TODAY = new Date(); TODAY.setHours(0,0,0,0); TODAY.setTime(TODAY.getTime() - TODAY.getTimezoneOffset()*60000); TODAY.setHours(0,0,0,0);
 const MONTH_START = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
 const WEEK_AGO = MONTH_START; // alias – filtrujemy od początku miesiąca
 
@@ -148,7 +148,7 @@ let searchQ = "";
 let wynikFilter = "all";
 
 const DAY_PL = ["Niedziela","Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota"];
-function toISO(d){ return d.toISOString().split("T")[0]; }
+function toISO(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const dd=String(d.getDate()).padStart(2,"0"); return y+"-"+m+"-"+dd; }
 function fmtDate(s){ if(!s) return ""; const d=new Date(s); if(isNaN(d)) return s; return d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric"}); }
 function getDayName(s){ const d=new Date(s); return isNaN(d)?"-":DAY_PL[d.getDay()]; }
 function daysUntil(s){ if(!s) return null; const d=new Date(s); if(isNaN(d)) return null; d.setHours(0,0,0,0); return Math.round((d-TODAY)/86400000); }
@@ -156,8 +156,8 @@ function parseSheetDate(s){
   if(!s) return null;
   if(typeof s === "string" && s.includes("T")) {
     // wyciagnij date bezposrednio z tekstu: 2026-05-13T22:00:00.000Z -> 2026-05-13
-    const match = s.match(/^(\d{4}-\d{2}-\d{2})/);
-    if(match) return match[1];
+    const d = new Date(s);
+    return new Date(d.getTime()+2*60*60*1000).toISOString().split("T")[0];
   }
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   if(/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(s)){ const[dd,mm,yy]=s.split("."); return `${yy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`; }
@@ -168,7 +168,7 @@ function parseSheetTime(s){
   if(typeof s === "string" && s.includes("T")) {
     // 1899-12-30T09:50:39.000Z — wyciagnij czas UTC
     const t = s.split("T")[1]||"";
-    return t.substring(0,5); // "09:50"
+    const d2=new Date(new Date(s).getTime()+10*60*1000); const h=d2.getUTCHours(); const mi=Math.round(d2.getUTCMinutes()/10)*10; return String(mi===60?h+1:h).padStart(2,"0")+":"+(mi===60?"00":String(mi).padStart(2,"0"));
   }
   if(typeof s === "number") {
     const totalMinutes = Math.round(s * 24 * 60);
